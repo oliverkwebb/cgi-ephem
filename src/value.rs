@@ -16,6 +16,7 @@ pub enum PhaseView {
     Emoji(bool),
     Illumfrac,
     PhaseName,
+    PhaseAngle,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -161,6 +162,9 @@ impl fmt::Display for Value {
                 Value::Phase(pa, PhaseView::PhaseName) => {
                     write!(f, "{}", PNAMES[phaseidx((1.0 - pa.cos()) / 2.0, *pa)])
                 }
+                Value::Phase(pa, PhaseView::PhaseAngle) => {
+                    write!(f, "{}°", pa.degrees())
+                }
                 Value::Num(n) => write!(f, "{:0.2}", n),
                 Value::RsTime(d) => {
                     if d.is_none() {
@@ -248,6 +252,9 @@ impl fmt::Display for Value {
                 }
                 Value::Phase(pa, PhaseView::PhaseName) => {
                     write!(f, "\"{}\"", PNAMES[phaseidx((1.0 - pa.cos()) / 2.0, *pa)])
+                }
+                Value::Phase(pa, PhaseView::PhaseAngle) => {
+                    write!(f, "{}", pa.radians())
                 }
                 Value::Num(n) => write!(f, "{:0.2}", n),
             }

@@ -47,6 +47,23 @@ pub const TERM: Driver = Driver {
     footer: nop,
 };
 
+fn raw_term_q(rs: Vec<Value>) {
+    println!(
+        "{}",
+        rs.iter()
+            .map(|x| format!("{:#}", x))
+            .collect::<Vec<String>>()
+            .join(" ")
+    );
+}
+pub const RAWTERM: Driver = Driver {
+    start: nop,
+    propheader: term_proph,
+    query: raw_term_q,
+    ephemq: term_eq,
+    footer: nop,
+};
+
 fn csv_proph(rs: &[Property]) {
     println!(
         "Date,{}",

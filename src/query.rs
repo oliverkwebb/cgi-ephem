@@ -12,6 +12,7 @@ pub enum Property {
     PhaseDefault,
     PhaseName,
     PhaseEmoji,
+    PhaseAngle,
     AngDia,
     IllumFrac,
     Rise,
@@ -32,6 +33,7 @@ impl fmt::Display for Property {
                 Property::PhaseDefault => "Phase",
                 Property::PhaseEmoji => "Phase Emoji",
                 Property::PhaseName => "Phase Name",
+                Property::PhaseAngle => "Phase Angle",
                 Property::IllumFrac => "Illuminated Frac.",
                 Property::AngDia => "Angular Diameter",
                 Property::Rise => "Rise Time",
@@ -155,6 +157,12 @@ pub fn property_of(obj: &CelObj, q: Property, rf: &RefFrame) -> Result<Value, &'
             };
             Ok(Value::Phase(p, PhaseView::PhaseName))
         }
+        (Property::PhaseAngle, _) => {
+            let Value::Phase(p, _) = property_of(obj, Property::PhaseDefault, rf)? else {
+                unreachable!();
+            };
+            Ok(Value::Phase(p, PhaseView::PhaseAngle))
+        }
         (Property::IllumFrac, _) => {
             let Value::Phase(p, _) = property_of(obj, Property::PhaseDefault, rf)? else {
                 unreachable!();
@@ -182,15 +190,8 @@ pub fn run(
     Ok(proplist
         .iter()
         .map(|prop| {
-            property_of(
-                object,
-                prop.clone(),
-                &RefFrame {
-                    latlong,
-                    date,
-                },
-            )
-            .unwrap_or_else(|e| panic!("Error on property {prop}: {e}"))
+            property_of(object, prop.clone(), &RefFrame { latlong, date })
+                .unwrap_or_else(|e| panic!("Error on property {prop}: {e}"))
         })
         .collect())
 }

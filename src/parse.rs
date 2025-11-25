@@ -1,4 +1,4 @@
-use crate::{value, timestep, query::Property};
+use crate::{query::Property, timestep, value};
 use chrono::prelude::*;
 use pracstro::{coord, time};
 
@@ -136,7 +136,9 @@ pub fn object(
     if s.starts_with("latlong:") {
         let ll = latlong(s.strip_prefix("latlong:").ok_or("Bad prefix")?)?
             .ok_or("Raw coordinate must not be none")?;
-        return Ok(value::CelObj::Crd(coord::Coord::from_equatorial(ll.1, ll.0)));
+        return Ok(value::CelObj::Crd(coord::Coord::from_equatorial(
+            ll.1, ll.0,
+        )));
     };
     cat.get(s.as_str()).cloned().ok_or("Unknown Object")
 }
@@ -161,6 +163,7 @@ pub fn property(
         "phase" => Ok(Property::PhaseDefault),
         "phaseemoji" => Ok(Property::PhaseEmoji),
         "phasename" => Ok(Property::PhaseName),
+        "phaseangle" => Ok(Property::PhaseAngle),
         "angdia" => Ok(Property::AngDia),
         "phaseprecent" | "illumfrac" => Ok(Property::IllumFrac),
         "rise" => Ok(Property::Rise),

@@ -91,7 +91,7 @@ fn main() {
         .arg(arg!(-E --ephem ["Start,Step,End"] "Generates Table").value_parser(parse::ephemq))
         .arg(
             arg!(-T --format [Format] "Output Format")
-                .value_parser(["term", "csv", "json"])
+                .value_parser(["term", "rawterm", "csv", "json"])
                 .default_value("term"),
         )
         .arg(arg!([object] "Celestial Object").required(true).value_parser(move |s: &str| parse::object(s, &ccheck)))
@@ -101,6 +101,7 @@ fn main() {
     let date = *matches.get_one("date").unwrap();
     let formatter = match matches.get_one::<String>("format").unwrap().as_str() {
         "term" => output::TERM,
+        "rawterm" => output::RAWTERM,
         "csv" => output::CSV,
         "json" => output::JSON,
         _ => todo!(),

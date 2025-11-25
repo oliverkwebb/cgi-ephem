@@ -70,7 +70,7 @@ All input to deskephem is case insensitive
 Options:
 * Date: `-d [DATE]` (default: `now`)
 * Observer Latitude/Longitude: `-l [LAT,LONG]` (default: `none`)
-* Output format: `-T [FORMAT]` (default: `term`, options: `csv`, `json`, `term`)
+* Output format: `-T [FORMAT]` (default: `term`, options: `csv`, `json`, `term`, `rawterm`)
 * Ephemeris generation: `-E start,step,end` (optional)
 
 Arguments:
@@ -87,6 +87,7 @@ Arguments:
 * Phase Info: `phase`
 * Phase Emoji: `phaseemoji`
 * Phase Name; `phasename`
+* Phase Angle: `phaseangle`
 * Angular Diameter: `angdia`
 * Illuminated Percent: `phaseprecent`, `illumfrac`
 * Rise and set times: `rise`, `set`
