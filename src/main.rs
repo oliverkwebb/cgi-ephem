@@ -1,7 +1,10 @@
-use pracstro::time;
+use pracstro::{
+    sol::{JUPITER, MARS},
+    time,
+};
 use value::*;
 
-use crate::query::generate_cgi_data;
+use crate::{query::generate_cgi_data, tiles::is_phase_possible};
 
 /// Handles the reading and querying of the catalog of celestial objects
 pub mod catalog;
@@ -15,7 +18,7 @@ pub mod value;
 /// pracstro provides a way to do this, but that isn't functional in a lot of contexts
 ///
 /// Used in ephemeris generation and date reading
-mod timestep {
+pub mod timestep {
     use chrono::prelude::*;
     use pracstro::time;
     #[derive(Copy, Clone, Debug, PartialEq)]
@@ -77,16 +80,31 @@ mod timestep {
 }
 
 fn main() {
-    let cat = catalog::read();
-
     let driver = text::ANSI_DRIVER;
 
-    let data = generate_cgi_data(CelObj::Sun, time::Date::now());
+    let date = time::Date::now();
+
+    let obj = CelObj::Moon;
+
+    let data = generate_cgi_data(obj.clone(), date);
+
+    print!("{}", driver.header);
 
     (0..=14).for_each(|x| {
-        tiles::location_tile(data, x)
+        tiles::location_tile(data, x, date)
             .into_iter()
             .for_each(|y| print!("{}", (driver.render_atom)(y)));
         print!("{}", driver.eol);
     });
+
+    if (is_phase_possible(obj.clone())) {
+        (0..=14).for_each(|x| {
+            tiles::phase_tile(data, x, date, &obj)
+                .into_iter()
+                .for_each(|y| print!("{}", (driver.render_atom)(y)));
+            print!("{}", driver.eol);
+        });
+    }
+
+    print!("{}", driver.footer);
 }

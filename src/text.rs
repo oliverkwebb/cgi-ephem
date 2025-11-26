@@ -96,8 +96,8 @@ fn render_html_atom(atom: TextAtom) -> String {
 
 pub const HTML_DRIVER: Driver = Driver {
     render_atom: render_html_atom,
-    header: "",
-    footer: "",
+    header: "<pre>",
+    footer: "</pre>",
     eol: "<br>",
 };
 
