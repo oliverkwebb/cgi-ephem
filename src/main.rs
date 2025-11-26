@@ -1,11 +1,15 @@
 use pracstro::time;
 use value::*;
 
+use crate::query::generate_cgi_data;
+
 /// Handles the reading and querying of the catalog of celestial objects
 pub mod catalog;
 pub mod output;
 pub mod parse;
 pub mod query;
+pub mod text;
+pub mod tiles;
 pub mod value;
 
 /// pracstro provides a way to do this, but that isn't functional in a lot of contexts
@@ -73,63 +77,16 @@ mod timestep {
 }
 
 fn main() {
-    use clap::{arg, command};
     let cat = catalog::read();
-    let ccheck = cat.clone();
-    let matches = command!()
-    	.help_template("{before-help}{name} ({version}) - {about-with-newline}\n{usage-heading} {usage}\n\n{all-args}{after-help}\n\nWritten by {author}")
-        .arg(
-            arg!(-d --date [Date] "Set the date")
-                .value_parser(parse::date)
-                .default_value("now"),
-        )
-        .arg(
-            arg!(-l --latlong ["Latitude,Longitude"] "Set the latitude/longitude")
-                .value_parser(parse::latlong)
-                .default_value("none"),
-        )
-        .arg(arg!(-E --ephem ["Start,Step,End"] "Generates Table").value_parser(parse::ephemq))
-        .arg(
-            arg!(-T --format [Format] "Output Format")
-                .value_parser(["term", "rawterm", "csv", "json"])
-                .default_value("term"),
-        )
-        .arg(arg!([object] "Celestial Object").required(true).value_parser(move |s: &str| parse::object(s, &ccheck)))
-        .arg(arg!([properties] ... "Properties").required(true).value_parser(move |s: &str| parse::property(s, &cat)))
-        .get_matches();
-    let location = *matches.get_one("latlong").unwrap();
-    let date = *matches.get_one("date").unwrap();
-    let formatter = match matches.get_one::<String>("format").unwrap().as_str() {
-        "term" => output::TERM,
-        "rawterm" => output::RAWTERM,
-        "csv" => output::CSV,
-        "json" => output::JSON,
-        _ => todo!(),
-    };
 
-    let obj = matches.get_one::<CelObj>("object").unwrap().clone();
-    let propl: Vec<query::Property> = matches
-        .get_many::<query::Property>("properties")
-        .unwrap()
-        .cloned()
-        .collect();
+    let driver = text::ANSI_DRIVER;
 
-    let q = |loc: Location, d: time::Date| {
-        query::run(&obj, &propl, loc, d).unwrap_or_else(|x| panic!("Failed to parse query: {x}"))
-    };
+    let data = generate_cgi_data(CelObj::Sun, time::Date::now());
 
-    (formatter.start)();
-
-    if let Some((start, step, end)) =
-        matches.get_one::<(time::Date, timestep::Step, time::Date)>("ephem")
-    {
-        (formatter.propheader)(&propl);
-        timestep::EphemIter::new(*start, *step, *end)
-            .map(|date| (q(location, date), date))
-            .for_each(|(r, date)| (formatter.ephemq)(r, &propl, date))
-    } else {
-        (formatter.query)(q(location, date));
-    }
-
-    (formatter.footer)();
+    (0..=14).for_each(|x| {
+        tiles::location_tile(data, x)
+            .into_iter()
+            .for_each(|y| print!("{}", (driver.render_atom)(y)));
+        print!("{}", driver.eol);
+    });
 }

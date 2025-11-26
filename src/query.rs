@@ -1,5 +1,5 @@
 use crate::value::*;
-use pracstro::{moon, sol, time};
+use pracstro::{coord::Coord, moon, sol, time};
 use std::fmt;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -194,4 +194,50 @@ pub fn run(
                 .unwrap_or_else(|e| panic!("Error on property {prop}: {e}"))
         })
         .collect())
+}
+
+/// All the data needed for the CGI Display
+#[derive(Default, Clone, Copy)]
+pub struct CGIData {
+    pub dist: f64,
+    pub brightness: f64,
+    pub location: Coord,
+    pub angdia: Option<time::Angle>,
+    pub phaseangle: Option<f64>,
+}
+
+/// Generate all the data CGI needs
+pub fn generate_cgi_data(object: CelObj, date: time::Date) -> CGIData {
+    let mut data: CGIData = CGIData::default();
+    let rf = RefFrame {
+        date,
+        latlong: None,
+    };
+    if let Ok(Value::Dist(dist)) = property_of(&object, Property::Distance, &rf) {
+        data.dist = dist;
+    } else {
+        unreachable!()
+    }
+    if let Ok(Value::Num(brightness)) = property_of(&object, Property::Magnitude, &rf) {
+        data.brightness = brightness;
+    } else {
+        unreachable!()
+    }
+    if let Ok(Value::Ang(angdia, _)) = property_of(&object, Property::AngDia, &rf) {
+        data.angdia = Some(angdia);
+    } else {
+        data.angdia = None;
+    }
+    if let Ok(Value::Crd(location, _)) = property_of(&object, Property::Equatorial, &rf) {
+        data.location = location;
+    } else {
+        unreachable!()
+    }
+    if let Ok(Value::Phase(phaseangle, _)) = property_of(&object, Property::PhaseAngle, &rf) {
+        data.phaseangle = Some(phaseangle.radians())
+    } else {
+        data.phaseangle = None
+    }
+
+    data
 }
