@@ -1,4 +1,4 @@
-use crate::{query::Property, timestep, value};
+use crate::{timestep, value};
 use chrono::prelude::*;
 use pracstro::{coord, time};
 
@@ -141,33 +141,4 @@ pub fn object(
         )));
     };
     cat.get(s.as_str()).cloned().ok_or("Unknown Object")
-}
-
-pub fn property(
-    sm: &str,
-    cat: &std::collections::HashMap<&'static str, value::CelObj>,
-) -> Result<Property, &'static str> {
-    let s = &sm.to_lowercase();
-    if s.starts_with("angbetween:") {
-        return Ok(Property::AngBet(object(
-            s.strip_prefix("angbetween:").ok_or("Bad prefix")?,
-            cat,
-        )?));
-    };
-    match s.as_str() {
-        "equ" | "equa" | "equatorial" => Ok(Property::Equatorial),
-        "horiz" | "horizontal" => Ok(Property::Horizontal),
-        "ecl" | "ecliptic" => Ok(Property::Ecliptic),
-        "dist" | "distance" => Ok(Property::Distance),
-        "mag" | "magnitude" | "brightness" => Ok(Property::Magnitude),
-        "phase" => Ok(Property::PhaseDefault),
-        "phaseemoji" => Ok(Property::PhaseEmoji),
-        "phasename" => Ok(Property::PhaseName),
-        "phaseangle" => Ok(Property::PhaseAngle),
-        "angdia" => Ok(Property::AngDia),
-        "phaseprecent" | "illumfrac" => Ok(Property::IllumFrac),
-        "rise" => Ok(Property::Rise),
-        "set" => Ok(Property::Set),
-        _ => Err("Unknown Property"),
-    }
 }

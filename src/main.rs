@@ -1,14 +1,9 @@
-use pracstro::{
-    sol::{JUPITER, MARS},
-    time,
-};
+use pracstro::time;
+use std::{env, path};
 use value::*;
-
-use crate::{query::generate_cgi_data, tiles::is_phase_possible};
 
 /// Handles the reading and querying of the catalog of celestial objects
 pub mod catalog;
-pub mod output;
 pub mod parse;
 pub mod query;
 pub mod text;
@@ -80,30 +75,70 @@ pub mod timestep {
 }
 
 fn main() {
-    let driver = text::ANSI_DRIVER;
+    // If there is no USER_AGENT environment variable, assume we are running in a CLI
+    let driver = if env::var("HTTP_USER_AGENT")
+        .unwrap_or("curl".into())
+        .starts_with("curl")
+    {
+        text::ANSI_DRIVER
+    } else {
+        text::HTML_DRIVER
+    };
 
     let date = time::Date::now();
+    let obj = if let Ok(query_string) = env::var("PATH_INFO") {
+        parse::object(query_string.strip_prefix("/").unwrap(), &catalog::read()).unwrap()
+    } else {
+        CelObj::Moon
+    };
 
-    let obj = CelObj::Moon;
-
-    let data = generate_cgi_data(obj.clone(), date);
+    let data = query::generate_cgi_data(&obj, date);
 
     print!("{}", driver.header);
 
-    (0..=14).for_each(|x| {
-        tiles::location_tile(data, x, date)
-            .into_iter()
-            .for_each(|y| print!("{}", (driver.render_atom)(y)));
-        print!("{}", driver.eol);
-    });
-
-    if (is_phase_possible(obj.clone())) {
-        (0..=14).for_each(|x| {
-            tiles::phase_tile(data, x, date, &obj)
+    let location_tile: Vec<String> = (0..=14)
+        .map(|x| {
+            tiles::location_tile(data.location, x, date)
                 .into_iter()
-                .for_each(|y| print!("{}", (driver.render_atom)(y)));
-            print!("{}", driver.eol);
-        });
+                .map(driver.render_atom)
+                .collect::<String>()
+        })
+        .collect();
+
+    let phase_tile: Vec<String> = if let Some(phaseangle) = data.phaseangle {
+        (0..=14)
+            .map(|x| {
+                tiles::phase_tile(phaseangle, x, &obj)
+                    .into_iter()
+                    .map(driver.render_atom)
+                    .collect::<String>()
+            })
+            .collect()
+    } else {
+        (0..=14)
+            .map(|x| {
+                tiles::na_nostart_tile(x, " Phase ".into())
+                    .into_iter()
+                    .map(driver.render_atom)
+                    .collect::<String>()
+            })
+            .collect()
+    };
+
+    let brightness_tile: Vec<String> = (0..=14)
+        .map(|x| {
+            tiles::brightness_tile(data.brightness, x)
+                .into_iter()
+                .map(driver.render_atom)
+                .collect::<String>()
+        })
+        .collect();
+
+    for i in 0..=14 {
+        print!("{}{}{}", location_tile[i], phase_tile[i], driver.eol);
+    }
+    for i in 0..=14 {
+        print!("{}{}", brightness_tile[i], driver.eol);
     }
 
     print!("{}", driver.footer);

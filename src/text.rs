@@ -41,6 +41,7 @@ pub struct TextAtom {
 /// A set of functions for rendering formatted text in a certain format
 pub struct Driver {
     pub render_atom: fn(TextAtom) -> String,
+    pub cgi_header: &'static str,
     pub header: &'static str,
     pub footer: &'static str,
     pub eol: &'static str,
@@ -96,8 +97,9 @@ fn render_html_atom(atom: TextAtom) -> String {
 
 pub const HTML_DRIVER: Driver = Driver {
     render_atom: render_html_atom,
-    header: "<pre>",
-    footer: "</pre>",
+    header: include_str!("dat/header_html"),
+    footer: include_str!("dat/footer_html"),
+    cgi_header: "Status: 200 OK\r\nContent-Type: text/html;charset=utf-8\r\n\r\n",
     eol: "<br>",
 };
 
@@ -138,31 +140,7 @@ fn render_ansi_atom(text: TextAtom) -> String {
 pub const ANSI_DRIVER: Driver = Driver {
     render_atom: render_ansi_atom,
     header: "",
+    cgi_header: "Status: 200 OK\r\nContent-Type: text/plain;charset=utf-8\r\n\r\n",
     footer: "",
     eol: "\n",
 };
-
-#[cfg(test)]
-mod tests {
-    /* Boilerplate and debug function */
-    /*
-    use crate::text::*;
-    #[test]
-    fn test_html() {
-        eprintln!(
-            "{}",
-            render_ansi_atom(TextAtom {
-                content: "meow meow meow meow".into(),
-                special_formatting: Some(TextFormatting {
-                    bold: false,
-                    italic: false,
-                    underline: true,
-                    color: Some(Color(ANSIColors::Red, false)),
-                    bgcolor: None,
-                })
-            })
-        );
-        panic!();
-    }
-     */
-}

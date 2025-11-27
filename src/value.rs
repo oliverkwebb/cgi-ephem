@@ -139,7 +139,7 @@ impl fmt::Display for Value {
                         Value::Ang(d.1, AngView::Latitude)
                     )
                 }
-                Value::Phase(pa, PhaseView::Default(n)) => {
+                Value::Phase(pa, PhaseView::Default(_)) => {
                     let ilf = (1.0 - pa.cos()) / 2.0;
                     let pi = phaseidx(ilf, *pa);
                     write!(f, "{} ({:2.1}%)", PNAMES[pi], ilf * 100.0)

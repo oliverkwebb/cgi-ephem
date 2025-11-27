@@ -207,7 +207,7 @@ pub struct CGIData {
 }
 
 /// Generate all the data CGI needs
-pub fn generate_cgi_data(object: CelObj, date: time::Date) -> CGIData {
+pub fn generate_cgi_data(object: &CelObj, date: time::Date) -> CGIData {
     let mut data: CGIData = CGIData::default();
     let rf = RefFrame {
         date,
