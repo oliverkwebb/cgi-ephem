@@ -55,8 +55,8 @@ fn render_html_color(color: Color) -> &'static str {
         Color(ANSIColors::Cyan, true) => "cyan",
         Color(ANSIColors::Green, false) => "DarkGreen",
         Color(ANSIColors::Cyan, false) => "MediumTurquoise",
-        Color(ANSIColors::Magenta, false) => "DarkMagenta",
-        Color(ANSIColors::Magenta, true) => "Magenta",
+        Color(ANSIColors::Magenta, false) => "Magenta",
+        Color(ANSIColors::Magenta, true) => "Pink",
         Color(ANSIColors::Green, true) => "green",
         Color(ANSIColors::Red, false) => "crimson",
         Color(ANSIColors::White, _) => "white",
@@ -144,3 +144,15 @@ pub const ANSI_DRIVER: Driver = Driver {
     footer: "",
     eol: "\n",
 };
+
+pub const TEXT_DRIVER: Driver = Driver {
+    render_atom: render_text_atom,
+    header: "",
+    cgi_header: "Status: 200 OK\r\nContent-Type: text/plain;charset=utf-8\r\n\r\n",
+    footer: "",
+    eol: "\n",
+};
+
+pub fn render_text_atom(atom: TextAtom) -> String {
+    atom.content
+}

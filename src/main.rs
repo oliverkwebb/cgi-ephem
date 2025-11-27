@@ -1,9 +1,11 @@
 use pracstro::time;
-use std::{env, path};
-use value::*;
+use std::env;
+
+use crate::text::{ANSI_DRIVER, HTML_DRIVER, TEXT_DRIVER};
 
 /// Handles the reading and querying of the catalog of celestial objects
 pub mod catalog;
+pub mod location_tile;
 pub mod parse;
 pub mod query;
 pub mod text;
@@ -75,30 +77,35 @@ pub mod timestep {
 }
 
 fn main() {
-    // If there is no USER_AGENT environment variable, assume we are running in a CLI
-    let driver = if env::var("HTTP_USER_AGENT")
-        .unwrap_or("curl".into())
-        .starts_with("curl")
-    {
-        text::ANSI_DRIVER
-    } else {
-        text::HTML_DRIVER
+    let argv: Vec<String> = env::args().collect();
+    let driver = match argv[1].as_str() {
+        "html" => HTML_DRIVER,
+        "ansi" => ANSI_DRIVER,
+        _ => TEXT_DRIVER,
     };
 
     let date = time::Date::now();
-    let obj = if let Ok(query_string) = env::var("PATH_INFO") {
-        parse::object(query_string.strip_prefix("/").unwrap(), &catalog::read()).unwrap()
-    } else {
-        CelObj::Moon
-    };
+    let obj = parse::object(argv[2].as_str(), &catalog::read());
+
+    if obj.is_err() {
+        println!("The specified object does not exist");
+        return;
+    }
+    let obj = obj.unwrap();
 
     let data = query::generate_cgi_data(&obj, date);
 
     print!("{}", driver.header);
+    print!(
+        "Report for {} on JD{:0.2}{}",
+        argv[2],
+        date.julian(),
+        driver.eol
+    );
 
     let location_tile: Vec<String> = (0..=14)
         .map(|x| {
-            tiles::location_tile(data.location, x, date)
+            location_tile::location_tile(data.location, x, date)
                 .into_iter()
                 .map(driver.render_atom)
                 .collect::<String>()
@@ -134,11 +141,20 @@ fn main() {
         })
         .collect();
 
-    for i in 0..=14 {
+    let distance_tile: Vec<String> = (0..=14)
+        .map(|x| {
+            tiles::distance_tile(data.dist, data.angdia, x)
+                .into_iter()
+                .map(driver.render_atom)
+                .collect::<String>()
+        })
+        .collect();
+
+    for i in 0..=13 {
         print!("{}{}{}", location_tile[i], phase_tile[i], driver.eol);
     }
     for i in 0..=14 {
-        print!("{}{}", brightness_tile[i], driver.eol);
+        print!("{}{}{}", distance_tile[i], brightness_tile[i], driver.eol);
     }
 
     print!("{}", driver.footer);
