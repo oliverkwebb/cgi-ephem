@@ -5,11 +5,10 @@ use crate::text::{ANSI_DRIVER, HTML_DRIVER, TEXT_DRIVER};
 
 /// Handles the reading and querying of the catalog of celestial objects
 pub mod catalog;
-pub mod location_tile;
 pub mod parse;
 pub mod query;
 pub mod text;
-pub mod tiles;
+pub mod tile;
 pub mod value;
 
 /// pracstro provides a way to do this, but that isn't functional in a lot of contexts
@@ -105,7 +104,7 @@ fn main() {
 
     let location_tile: Vec<String> = (0..=14)
         .map(|x| {
-            location_tile::location_tile(data.location, x, date)
+            tile::location::location_tile(data.location, x, date)
                 .into_iter()
                 .map(driver.render_atom)
                 .collect::<String>()
@@ -115,7 +114,7 @@ fn main() {
     let phase_tile: Vec<String> = if let Some(phaseangle) = data.phaseangle {
         (0..=14)
             .map(|x| {
-                tiles::phase_tile(phaseangle, x, &obj)
+                tile::phase::phase_tile(phaseangle, x, &obj)
                     .into_iter()
                     .map(driver.render_atom)
                     .collect::<String>()
@@ -124,7 +123,7 @@ fn main() {
     } else {
         (0..=14)
             .map(|x| {
-                tiles::na_nostart_tile(x, " Phase ".into())
+                tile::na_nostart_tile(x, " Phase ".into())
                     .into_iter()
                     .map(driver.render_atom)
                     .collect::<String>()
@@ -134,7 +133,7 @@ fn main() {
 
     let brightness_tile: Vec<String> = (0..=14)
         .map(|x| {
-            tiles::brightness_tile(data.brightness, x)
+            tile::brightness::brightness_tile(data.brightness, x)
                 .into_iter()
                 .map(driver.render_atom)
                 .collect::<String>()
@@ -143,7 +142,7 @@ fn main() {
 
     let distance_tile: Vec<String> = (0..=14)
         .map(|x| {
-            tiles::distance_tile(data.dist, data.angdia, x)
+            tile::distance::distance_tile(data.dist, data.angdia, x)
                 .into_iter()
                 .map(driver.render_atom)
                 .collect::<String>()

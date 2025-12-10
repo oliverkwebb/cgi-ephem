@@ -22,7 +22,6 @@ pub enum PhaseView {
 #[derive(Debug, PartialEq, Clone)]
 pub enum CrdView {
     Equatorial,
-    Horizontal(RefFrame),
     Ecliptic(time::Date),
 }
 
@@ -120,16 +119,6 @@ impl fmt::Display for Value {
                         Value::Ang(d.1, AngView::Latitude)
                     )
                 }
-                Value::Crd(c, CrdView::Horizontal(rf)) => {
-                    let (lat, long) = rf.latlong.unwrap();
-                    let d = c.horizon(rf.date, lat, long);
-                    write!(
-                        f,
-                        "{} {}",
-                        Value::Ang(d.0, AngView::Angle),
-                        Value::Ang(d.1, AngView::Latitude)
-                    )
-                }
                 Value::Crd(c, CrdView::Ecliptic(d)) => {
                     let d = c.ecliptic(*d);
                     write!(
@@ -203,16 +192,6 @@ impl fmt::Display for Value {
                         "[{:#}, {:#}]",
                         Value::Ang(d.0, AngView::Time),
                         Value::Ang(d.1, AngView::Latitude)
-                    )
-                }
-                Value::Crd(c, CrdView::Horizontal(rf)) => {
-                    let (lat, long) = rf.latlong.unwrap();
-                    let d = c.horizon(rf.date, lat, long);
-                    write!(
-                        f,
-                        "[{:#}, {:#}]",
-                        Value::Ang(d.0, AngView::Angle),
-                        Value::Ang(d.1.refract(), AngView::Latitude)
                     )
                 }
                 Value::Crd(c, CrdView::Ecliptic(d)) => {

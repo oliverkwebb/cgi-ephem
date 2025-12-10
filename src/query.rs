@@ -5,7 +5,6 @@ use std::fmt;
 #[derive(Clone, Debug, PartialEq)]
 pub enum Property {
     Equatorial,
-    Horizontal,
     Ecliptic,
     Distance,
     Magnitude,
@@ -26,7 +25,6 @@ impl fmt::Display for Property {
             "{}",
             match self {
                 Property::Equatorial => "Coordinates (RA/De)",
-                Property::Horizontal => "Coordinates (Azi/Alt)",
                 Property::Ecliptic => "Coordinates (Ecliptic)",
                 Property::Distance => "Distance",
                 Property::Magnitude => "Magnitude",
@@ -74,15 +72,6 @@ pub fn property_of(obj: &CelObj, q: Property, rf: &RefFrame) -> Result<Value, &'
             CrdView::Equatorial,
         )),
         (Property::Equatorial, CelObj::Crd(s)) => Ok(Value::Crd(s, CrdView::Equatorial)),
-        (Property::Horizontal, _) => {
-            if rf.latlong.is_none() {
-                return Err("Need to specify a lat/long with -l");
-            };
-            let Value::Crd(p, _) = property_of(obj, Property::Equatorial, rf)? else {
-                unreachable!();
-            };
-            Ok(Value::Crd(p, CrdView::Horizontal(*rf)))
-        }
         (Property::Ecliptic, _) => {
             let Value::Crd(p, _) = property_of(obj, Property::Equatorial, rf)? else {
                 unreachable!();
@@ -213,27 +202,27 @@ pub fn generate_cgi_data(object: &CelObj, date: time::Date) -> CGIData {
         date,
         latlong: None,
     };
-    if let Ok(Value::Dist(dist)) = property_of(&object, Property::Distance, &rf) {
+    if let Ok(Value::Dist(dist)) = property_of(object, Property::Distance, &rf) {
         data.dist = dist;
     } else {
         unreachable!()
     }
-    if let Ok(Value::Num(brightness)) = property_of(&object, Property::Magnitude, &rf) {
+    if let Ok(Value::Num(brightness)) = property_of(object, Property::Magnitude, &rf) {
         data.brightness = brightness;
     } else {
         unreachable!()
     }
-    if let Ok(Value::Ang(angdia, _)) = property_of(&object, Property::AngDia, &rf) {
+    if let Ok(Value::Ang(angdia, _)) = property_of(object, Property::AngDia, &rf) {
         data.angdia = Some(angdia);
     } else {
         data.angdia = None;
     }
-    if let Ok(Value::Crd(location, _)) = property_of(&object, Property::Equatorial, &rf) {
+    if let Ok(Value::Crd(location, _)) = property_of(object, Property::Equatorial, &rf) {
         data.location = location;
     } else {
         unreachable!()
     }
-    if let Ok(Value::Phase(phaseangle, _)) = property_of(&object, Property::PhaseAngle, &rf) {
+    if let Ok(Value::Phase(phaseangle, _)) = property_of(object, Property::PhaseAngle, &rf) {
         data.phaseangle = Some(phaseangle.radians())
     } else {
         data.phaseangle = None

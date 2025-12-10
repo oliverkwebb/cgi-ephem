@@ -1,7 +1,7 @@
 use crate::text::TextFormatting;
 use crate::text::{self};
 use crate::text::{ANSIColors, Color};
-use crate::tiles;
+use crate::tile;
 use crate::value::CrdView;
 use iau_constellations;
 use pracstro::coord::Coord;
@@ -113,11 +113,11 @@ pub fn location_tile(location: Coord, line: usize, date: time::Date) -> Vec<text
             special_formatting: None,
         }],
         14 => vec![text::TextAtom {
-            content: tiles::TILE_FOOTER.into(),
+            content: tile::TILE_FOOTER.into(),
             special_formatting: None,
         }],
         1..14 => vec![text::TextAtom {
-            content: tiles::EMPTY_LINE.into(),
+            content: tile::EMPTY_LINE.into(),
             special_formatting: None,
         }],
         _ => unreachable!(),
